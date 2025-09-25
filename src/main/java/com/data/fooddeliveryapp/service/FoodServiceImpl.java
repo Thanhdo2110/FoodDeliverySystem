@@ -1,6 +1,11 @@
 package com.data.fooddeliveryapp.service;
 
+import com.data.fooddeliveryapp.entity.FoodEntity;
+import com.data.fooddeliveryapp.io.FoodRequest;
+import com.data.fooddeliveryapp.io.FoodResponse;
+import com.data.fooddeliveryapp.repository.FoodRepository;
 import lombok.AllArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -15,9 +20,11 @@ import java.io.IOException;
 import java.util.UUID;
 
 @Service
-@AllArgsConstructor
 public class FoodServiceImpl implements FoodService{
-    private final S3Client s3Client;
+    @Autowired
+    private  S3Client s3Client;
+    @Autowired
+    private  FoodRepository foodRepository;
 
     @Value("${aws.s3.bucketname}")
     private String bucketName;
@@ -43,5 +50,32 @@ public class FoodServiceImpl implements FoodService{
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,"An error occured while uploading the file");
 
         }
+    }
+
+    @Override
+    public FoodResponse addFood(FoodRequest request, MultipartFile file) {
+         FoodEntity newFoodEntity = convertToEntity(request);
+         String imageUrl = uploadFile(file);
+         newFoodEntity.setImageUrl(imageUrl);
+         newFoodEntity = foodRepository.save(newFoodEntity);
+        return convertToResponse(newFoodEntity);
+    }
+    private FoodEntity convertToEntity(FoodRequest request){
+        return FoodEntity.builder()
+                .name(request.getName())
+                .description(request.getDescription())
+                .category(request.getCategory())
+                .price(request.getPrice())
+                .build();
+    }
+    private FoodResponse convertToResponse(FoodEntity entity){
+       return  FoodResponse.builder()
+                .id(entity.getId())
+                .name(entity.getName())
+                .description(entity.getDescription())
+                .category(entity.getCategory())
+                .price(entity.getPrice())
+                .imageUrl(entity.getImageUrl())
+                .build();
     }
 }
