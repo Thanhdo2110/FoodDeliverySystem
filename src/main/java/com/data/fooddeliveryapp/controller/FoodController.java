@@ -12,9 +12,12 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/foods")
 @AllArgsConstructor
+@CrossOrigin("*")
 public class FoodController {
 
     private final FoodService foodService;
@@ -31,5 +34,20 @@ public class FoodController {
         }
         FoodResponse response =foodService.addFood(request,file);
         return response;
+    }
+
+    @GetMapping
+    public List<FoodResponse> readFoods(){
+        return foodService.readFood();
+    }
+    @GetMapping("/{id}")
+    public FoodResponse readFoodById(@PathVariable String id){
+        return foodService.readFoodById(id);
+    }
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public  void deleteFood(@PathVariable String id){
+        foodService.deleteFoodById(id);
+
     }
 }
