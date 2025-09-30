@@ -8,6 +8,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -24,7 +25,7 @@ public class JwtUtil {
     }
 
     private String createToken(Map<String, Object> claims, String subject){
-        SecretKey key = Keys.hmacShaKeyFor(SECRET_KEY.getBytes());
+        SecretKey key = Keys.hmacShaKeyFor(SECRET_KEY.getBytes(StandardCharsets.UTF_8));
         return Jwts.builder()
                 .setClaims(claims)
                 .setSubject(subject)
@@ -47,11 +48,12 @@ public class JwtUtil {
     }
 
     private Claims extractAllClaims(String token) {
-        SecretKey key = Keys.hmacShaKeyFor(SECRET_KEY.getBytes());
+        SecretKey key = Keys.hmacShaKeyFor(SECRET_KEY.getBytes(StandardCharsets.UTF_8));
+        String jwt = token != null && token.startsWith("Bearer ") ? token.substring(7) : token;
         return Jwts.parser()
                 .verifyWith(key)
                 .build()
-                .parseSignedClaims(token)
+                .parseSignedClaims(jwt)
                 .getPayload();
     }
 
